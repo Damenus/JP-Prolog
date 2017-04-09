@@ -1,0 +1,144 @@
+%Zadanie 3
+% krokB i krokA to gracze, A to pierwszy gracz, jest generalnie 6 ró¿nych ruchów(wynika to z 
+%naszego zadania. GraczA mo¿e wybraæ co chce, a graczB musi mieæ wszystkie drogi tak 
+%¿eby przegraæ. ka¿da linijka krokB to jest implikacja zapisana za pomoc¹ negacji i koninkcji
+%graczA do ka¿dego warunku ma altenatywê (;) a gracz B konikcjê(,)
+
+krokB(A,B,C):- 	\+ (A >= 2, \+ (A1 is A - 2, krokA(A1,B,C))),
+				\+ (B >= 2, \+ (B1 is B - 2, krokA(A,B1,C))),
+				\+ (C >= 2, \+ (C1 is C - 2, krokA(A,B,C1))),
+				\+ (A >= 2, \+ (A2 is A - 2, B2 is B + 1, krokA(A2,B2,C))), /*A-1 B+1 A-1 */
+				\+ (A >= 1, \+ (A2 is A - 1, krokA(A2,B,C))), /*A-1, B+1, B-1*/
+				\+ (A >= 1, \+ (C >= 1, A2 is A -1, B2 is B + 1, C2 is C - 1, krokA(A2,B2,C2))), /*A-1 B+1 C-1  */
+				\+ (A = 0, B = 0, C = 0),
+				\+ (A = 0, B = 1, C = 0),
+				\+ (A = 0, B = 0, C = 1).
+				
+krokA(0,0,0).
+krokA(0,1,0).
+krokA(0,0,1).
+krokA(0,1,1).
+
+
+krokA(A,B,C):- 	(A >= 2, A1 is A - 2, krokB(A1,B,C));
+				(B >= 2, B1 is B - 2, krokB(A,B1,C));
+				(C >= 2, C1 is C - 2, krokB(A,B,C1)); 
+				(A >= 2, A2 is A - 2, B2 is B + 1, krokB(A2,B2,C)); /*A-1 B+1 A-1 */
+				(A >= 1, A2 is A - 1, krokB(A2,B,C)); /*A-1, B+1, B-1*/
+				(A >= 1, C >= 1, A2 is A -1, B2 is B + 1, C2 is C - 1, krokB(A2,B2,C2)).
+
+
+
+teoœ -2
+
+
+:-lib(lists).
+
+%sortowanie%
+merge_sort([],[]).     
+merge_sort([X],[X]).  
+merge_sort(List,Sorted):-List=[_,_|_],divide(List,L1,L2),merge_sort(L1,Sorted1),merge_sort(L2,Sorted2), smerge(Sorted1,Sorted2,Sorted).                  
+
+smerge([],L,L).
+smerge(L,[],L):-L\=[].
+smerge([X|T1],[Y|T2],[X|T]):-X>Y,smerge(T1,[Y|T2],T).
+smerge([X|T1],[Y|T2],[Y|T]):-X=<Y,smerge([X|T1],T2,T).
+divide(L,L1,L2):-halve(L,L1,L2).
+
+rowneZero([]).
+rowneZero([H|T]):-H=0,rowneZero(T).
+
+zmniejsz([H|T],O):-odejmij(T,O,H).
+
+odejmij(I,I,0).
+odejmij([HI|TI],[HO|TO],I):-HI>0,HO is HI-1,NI is I-1,odejmij(TI,TO,NI).
+
+
+czy_graficzny([],ODP).
+czy_graficzny(LISTA,ODP):-merge_sort(LISTA,SORTED),zmniejsz(SORTED,ZMNIEJSZONE),czy_graficzny(ZMNIEJSZONE,ODP),ODP='TAK';ODP='NIE'.
+
+
+Wojtek
+
+przestaw(X,[Y|T],[X,Y|T]) :- X>=Y.
+przestaw(X,[Y|T],[Y|NT]) :- Y>X, przestaw(X,T,NT).
+przestaw(X,[],[X]).
+% X-el. do wstawienia, [Y|T]- lista gdzie chcemy wstawic
+% NT- zmodyfikowany ogon gdzie wstawimy X jesli Y>X
+% do pustej listy po prostu wstaw, jesli nie jest pusta(3)
+% to jesli jest X>=Y to wstaw je w kolejnosci X,Y,reszta(1)
+% jesli nie to powtorz operacje dla X i reszty(2)
+
+sortuj([],[]).
+sortuj([H|T],W) :- sortuj(T,M), przestaw(H,M,W).
+% W-lista wynikowa, T-reszta/ogon listy, H-glowa listy, 
+% M-tablica wynikowa posortowania rekurencyjnego-> sluzy dla przestawienia
+% pusta lista jest zawsze posortowana, jesli nie jest pusta(1)
+% to powtorz dla ogonu i wykonaj operacje przestawienia dla glowy(2)
+
+zerowy([H|T]) :- H==0, zerowy(T).
+zerowy([]).
+% sprawdz czy ciag jest zerowy, jest jesli glowa jest zerowa oraz reszta (rekurencyjnie)(1)
+% kiedy dojdziemy do pustej listy zwroc ze prawda(2)
+
+decrement(A,A,0).
+decrement([H|T],[H2|T2],I) :- 
+I>0, H2 is H-1, I2 is I-1, decrement(T,T2,I2).
+% odejmij o 1 i zmniejsz zmienna "inkrementujaca", wykonaj ponownie
+% jak I=0 to zostaw
+
+odejmij([H|T],W) :- decrement([H|T],W,H) -> true ; true.
+% operacja przerobienia listy [H|T] na liste wynikowa W, zawsze true
+% zmniejszy H nastepnych elementow o 1
+
+dodatniosc([]).
+dodatniosc([H|T]) :- H>=0, dodatniosc(T).
+% sprawdz czy glowa jest wieksza od zera a potem reszta listy
+
+graficzny(C0) :- (zerowy(C0)->true; 
+sortuj(C0,C1), odejmij(C1,C2), dodatniosc(C2), graficzny(C2)).
+% zgodnie z algorytmem sprawdzania czy ciag jest graficzny
+
+main(Lista, ODP) :- 
+(sortuj(Lista,Lista2), 
+Lista2=[H|_], 
+length(Lista,I), 
+H<I, 
+graficzny(Lista2))->ODP='T'; ODP='N'.
+% posortuj wez H , sprawdz czy jest wystarczajaco duzo licz do dekrementacji (H<I)
+% wywolaj graficzny() i odpowiedz
+
+
+
+TRZECIE
+
+czy_wygrywa(0,0,0).
+czy_wygrywa(1,0,0).
+czy_wygrywa(0,1,0).
+czy_wygrywa(0,0,1).
+czy_wygrywa(0,1,1).
+% stany koñca gry
+
+czy_wygrywa(A,B,C) :- 
+(X is A - 2, X >= 0, not(czy_wygrywa(X,B,C))); 
+(X is B - 2, X >= 0, not(czy_wygrywa(A,X,C))); 
+(X is C - 2, X >= 0, not(czy_wygrywa(A,B,X))); 
+(X is A - 2, Y is B + 1, X >= 0, Y >= 0, not(czy_wygrywa(X,Y,C))); 
+(X is A - 1, X >= 0, not(czy_wygrywa(X,B,C))); 
+(X is A - 1, Y is B + 1, Z is C - 1, X >= 0, Y >= 0, Z >=0, not(czy_wygrywa(X,Y,Z))).
+
+1.
+czy_posortowana( [],ODP ).
+czy_posortowana( [_],ODP ).
+czy_posortowana([H1|[H2|T]], ODP) :- H<H2, 
+czy_posortowana([H2|T], ODP),ODP='T'; ODP='N'.
+
+
+
+1.Damian
+
+czy_posortowane( [_], ODP = 'T').
+czy_posortowane( [H1|[H2|Tail]], ODP) :- H1 < H2, ODP = 'T', czy_posortowane( [H2|Tail], ODP ); ODP = 'N'.
+
+
+
